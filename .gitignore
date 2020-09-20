@@ -1,3 +1,7 @@
 geckodriver.log
 .vscode
 venv
+instagram.db
+__pycache__
+credentials.py
+users_left.data

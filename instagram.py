@@ -14,20 +14,20 @@ driver.implicitly_wait(20)
 class Instagram:
     instagram_link = "https://www.instagram.com/"
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self, username):
+        self.username = username if username.startswith(
+            '@') else '@' + username
 
     def create_link(self, profile):
         """It takes the profile name of an instagram account and creates a
         link to the homepage of that profile"""
         if "@" in profile:
             profile = profile.replace('@', '')
-        link = self.instagram_link + profile
+        link = self.instagram_link + profile + '/'
 
         return link
 
-    def login(self):
+    def login(self, password):
         """The login function allows us to log in an instagram account."""
 
         # Load the login page
@@ -39,10 +39,10 @@ class Instagram:
         username.send_keys(self.username)
         passw = driver.find_element_by_name("password")
         passw.clear()
-        passw.send_keys(self.password)
+        passw.send_keys(password)
         passw.send_keys(Keys.RETURN)
 
-    def get_profiles(self, link, number_of_accounts, following=[]):
+    def get_profiles(self, link, number_of_accounts, following=set()):
         """The get profiles function enters to an instagram homepage and gathers an specific number of
         usernames that are following the profile
 
@@ -52,14 +52,13 @@ class Instagram:
             Link of the homepage that we want to visit
         number_of_accounts : int
             Amount of followers to get
-        following : list
-            List with the usernames that our account is currently following
+        following : set
+            Set with the usernames that our account is currently following
 
         Returns
         -------
-            A list with the usernames to follow """
+            A set with the usernames to follow """
 
-        assert type(profile) == str, "It is not a correct account"
         assert type(number_of_accounts) == int, "It is not a number"
 
         if number_of_accounts > 2000:
@@ -91,7 +90,7 @@ class Instagram:
             time.sleep(2)
 
         # followers will keep the username of the accounts that we are not already following
-        followers = []
+        followers = set()
         for user in followers_list.find_elements_by_css_selector("li"):
             user_link = user.find_element_by_css_selector(
                 "a").get_attribute("href")
@@ -101,7 +100,7 @@ class Instagram:
             print(name)
 
             if user_link not in following:
-                followers.append(name)
+                followers.add(name)
 
         return followers
 
@@ -118,11 +117,14 @@ class Instagram:
         -------
             List with the profile photos to like or None when the profile doesn't have photos or it is private"""
 
-        try:
-            if driver.current_url is not link:
-                driver.get(link)
-        except:
-            pass
+        # try:
+        #     if driver.current_url == link:
+        #         pass
+
+        #     else:
+        #         driver.get(link)
+        # except:
+        #     pass
 
         time.sleep(2)
 
@@ -201,11 +203,14 @@ class Instagram:
             ----------
             link : str
                 Homepage of the user """
-        try:
-            if driver.current_url is not link:
-                driver.get(link)
-        except:
-            pass
+        # try:
+        #     if driver.current_url == link:
+        #         pass
+
+        #     else:
+        #         driver.get(link)
+        # except:
+        #     pass
 
         time.sleep(1)
         # We move to the top of the page
@@ -213,9 +218,13 @@ class Instagram:
 
         time.sleep(2)
         try:
-            follow_button = driver.find_element_by_css_selector(".BY3EC")
+            follow_button = driver.find_element_by_xpath(
+                "/html/body/div[1]/section/main/div/header/section/div[1]/div[1]/div/div/div/span/span[1]/button")
+            # follow_button = driver.find_elements_by_css_selector("._6VtSN")
             follow_button.click()
-        except:
+        except Exception as e:
+            print(e)
+        finally:
             user = link.split('/')[-2]
             print("It was not possible to follow {}".format(user))
 
@@ -336,42 +345,10 @@ class Instagram:
 
         return following
 
+    def close(self):
+        """close the driver connection"""
+        driver.close()
 
-if __name__ == "__main__":
 
-    def already_follow(username):
-        """Checks the state of our account with the account provide
-
-        Parameters
-        ----------
-        username : str
-            The username of the instagram account
-
-        Returns
-        -------
-        'solicitado' : str
-            if a follow request was already send
-
-        'seguir' : str
-            if the account is available to follow
-        'no existe' : str
-            if the profile doesn't exist """
-
-        driver.get(f"https://www.instagram.com/{username}/")
-        time.sleep(2)
-
-        # We identify the follow button and then we decide what to do depending on the text that it has
-        # Instagram has to be in spanish
-        try:
-            follow_button = driver.find_element_by_css_selector(".BY3EC")
-            if follow_button.text == "Siguiendo":
-                print(f"Ya estas siguiendo al usuario: {username}")
-                return "siguiendo"
-            elif follow_button.text == "Solicitado":
-                print(f"Ya solicitaste ser amigo de: {username}")
-                return "solicitado"
-            else:
-                return "seguir"
-        except:
-            print("Perfil no existe")
-            return "no existe"
+# if __name__ == "__main__":
+#     pass
