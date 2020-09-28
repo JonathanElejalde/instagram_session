@@ -1,22 +1,16 @@
-from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 import time
 import random
 
-# Initialize the driver
-driver = webdriver.Firefox(executable_path="geckodriver\\geckodriver.exe")
-
-# Wait maximum 10 seconds for the elements in the page
-driver.implicitly_wait(20)
-
 
 class Instagram:
     instagram_link = "https://www.instagram.com/"
 
-    def __init__(self, username):
+    def __init__(self, username, driver):
         self.username = username if username.startswith(
             '@') else '@' + username
+        self.driver = driver
 
     def create_link(self, profile):
         """It takes the profile name of an instagram account and creates a
@@ -31,18 +25,18 @@ class Instagram:
         """The login function allows us to log in an instagram account."""
 
         # Load the login page
-        driver.get(self.instagram_link + "accounts/login/")
+        self.driver.get(self.instagram_link + "accounts/login/")
 
         # Fill the format with username and password
-        username = driver.find_element_by_name("username")
+        username = self.driver.find_element_by_name("username")
         username.clear()
         username.send_keys(self.username)
-        passw = driver.find_element_by_name("password")
+        passw = self.driver.find_element_by_name("password")
         passw.clear()
         passw.send_keys(password)
         passw.send_keys(Keys.RETURN)
 
-    def get_profiles(self, link, number_of_accounts, following=set()):
+    def get_profiles(self, link, number_of_accounts, following=None):
         """The get profiles function enters to an instagram homepage and gathers an specific number of
         usernames that are following the profile
 
@@ -59,22 +53,25 @@ class Instagram:
         -------
             A set with the usernames to follow """
 
+        if following is None:
+            following = set()
+
         assert type(number_of_accounts) == int, "It is not a number"
 
         if number_of_accounts > 2000:
             number_of_accounts = 2000
             print("The program can collect just 2000 usernames")
 
-        driver.get(link)
+        self.driver.get(link)
 
         # Identify the followers button
-        followers_button = driver.find_element_by_css_selector("ul li a")
+        followers_button = self.driver.find_element_by_css_selector("ul li a")
         time.sleep(2)
         followers_button.click()
         time.sleep(3)
 
         # Look at the list, it just show the firts 12 so we store that number into number_of_followers
-        followers_list = driver.find_element_by_css_selector(
+        followers_list = self.driver.find_element_by_css_selector(
             "div[role='dialog'] ul")
         number_of_followers = len(
             followers_list.find_elements_by_css_selector("li"))
@@ -82,7 +79,7 @@ class Instagram:
 
         # number_of_accounts is the amount of followers that we want to capture, so we scroll down the list of followers until number_of_followers matches that number
 
-        action_chain = webdriver.ActionChains(driver)
+        action_chain = webdriver.ActionChains(self.driver)
         while number_of_followers <= number_of_accounts:
             action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
             number_of_followers = len(
@@ -105,7 +102,7 @@ class Instagram:
         return followers
 
     def get_photos(self, link):
-        """The get photos function returns a random amount of links with the photos 
+        """The get photos function returns a random amount of links with the photos
         of the profile that we are searching
 
         Parameters
@@ -118,11 +115,11 @@ class Instagram:
             List with the profile photos to like or None when the profile doesn't have photos or it is private"""
 
         # try:
-        #     if driver.current_url == link:
+        #     if self.driver.current_url == link:
         #         pass
 
         #     else:
-        #         driver.get(link)
+        #         self.driver.get(link)
         # except:
         #     pass
 
@@ -130,7 +127,7 @@ class Instagram:
 
         # Scroll down the page to obtain more photos
         for i in range(1, 3):
-            driver.execute_script(
+            self.driver.execute_script(
                 "window.scrollTo(0, document.body.scrollHeight)")
             time.sleep(1)
 
@@ -143,7 +140,7 @@ class Instagram:
             photos = []
             count = 1
 
-            for photo in driver.find_elements_by_tag_name("a"):
+            for photo in self.driver.find_elements_by_tag_name("a"):
                 p = photo.get_attribute("href")
 
                 # If the link is a photo we add it to photos. A maximum of 10
@@ -186,11 +183,11 @@ class Instagram:
             link : str
                 The link of the photo"""
 
-        driver.get(link)
+        self.driver.get(link)
         time.sleep(1)
 
         try:
-            driver.find_element_by_css_selector(
+            self.driver.find_element_by_css_selector(
                 ".fr66n > button:nth-child(1)").click()
         except Exception as e:
             print("error in like function")
@@ -204,11 +201,11 @@ class Instagram:
             link : str
                 Homepage of the user """
         # try:
-        #     if driver.current_url == link:
+        #     if self.driver.current_url == link:
         #         pass
 
         #     else:
-        #         driver.get(link)
+        #         self.driver.get(link)
         # except:
         #     pass
 
@@ -218,9 +215,9 @@ class Instagram:
 
         time.sleep(2)
         try:
-            follow_button = driver.find_element_by_xpath(
+            follow_button = self.driver.find_element_by_xpath(
                 "/html/body/div[1]/section/main/div/header/section/div[1]/div[1]/div/div/div/span/span[1]/button")
-            # follow_button = driver.find_elements_by_css_selector("._6VtSN")
+            # follow_button = self.driver.find_elements_by_css_selector("._6VtSN")
             follow_button.click()
         except Exception as e:
             print(e)
@@ -240,16 +237,16 @@ class Instagram:
             -------
             A string specifying which account was unfollowed """
 
-        driver.get(link)
+        self.driver.get(link)
         time.sleep(2)
 
-        ##follow_button = driver.find_element_by_css_selector(".BY3EC")
-        follow_button = driver.find_element_by_xpath(
+        # follow_button = self.driver.find_element_by_css_selector(".BY3EC")
+        follow_button = self.driver.find_element_by_xpath(
             "/html/body/div[1]/section/main/div/header/section/div[1]/div[1]/div/div[2]/div/span/span[1]/button"
         )
         follow_button.click()
         time.sleep(1)
-        confirmation_button = driver.find_element_by_xpath(
+        confirmation_button = self.driver.find_element_by_xpath(
             '/html/body/div[4]/div/div/div/div[3]/button[1]'
         )
         confirmation_button.click()
@@ -267,8 +264,9 @@ class Instagram:
         try:
             enter_key = u'\ue007'
             # get the comment field and click
-            comment_field = driver.find_element_by_class_name("Ypffh").click()
-            driver.execute_script(
+            comment_field = self.driver.find_element_by_class_name(
+                "Ypffh").click()
+            self.driver.execute_script(
                 'window.scrollTo(0, document.body.scrollHeight)')
 
             # Wait # seconds after like a photo
@@ -279,7 +277,7 @@ class Instagram:
             comment_text = random.choice(comment_list)
 
             # We have to search for the field again to add the comment, then enter
-            comment_field = driver.find_element_by_css_selector(".Ypffh")
+            comment_field = self.driver.find_element_by_css_selector(".Ypffh")
             comment_field.send_keys(comment_text + enter_key)
 
             time.sleep(random.randint(1, 3))
@@ -298,10 +296,10 @@ class Instagram:
         -------
             A list with the account links that the user is following """
 
-        driver.get(link)
+        self.driver.get(link)
 
         # Now we catch the amount of people that we are following to have a limit
-        following_number = driver.find_element_by_xpath(
+        following_number = self.driver.find_element_by_xpath(
             "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a/span"
         ).text
         if '.' in following_number:
@@ -311,7 +309,7 @@ class Instagram:
         following_number -= 5
 
         # Identify the followers button and then click on it
-        following_button = driver.find_element_by_css_selector(
+        following_button = self.driver.find_element_by_css_selector(
             "li.Y8-fY:nth-child(3) > a:nth-child(1)"
         )
         time.sleep(2)
@@ -319,14 +317,14 @@ class Instagram:
         time.sleep(2)
 
         # Look at the list, it just show the firts 12 so we store that number into number_of_followers
-        followers_list = driver.find_element_by_css_selector(
+        followers_list = self.driver.find_element_by_css_selector(
             "div[role='dialog'] ul")
         number_of_followers = len(
             followers_list.find_elements_by_css_selector("li"))
         # print(number_of_followers)
         followers_list.click()
 
-        action_chain = webdriver.ActionChains(driver)
+        action_chain = webdriver.ActionChains(self.driver)
         while number_of_followers < following_number:
             action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
             number_of_followers = len(
@@ -347,8 +345,8 @@ class Instagram:
 
     def close(self):
         """close the driver connection"""
-        driver.close()
+        self.driver.close()
 
 
-# if __name__ == "__main__":
-#     pass
+if __name__ == "__main__":
+    pass

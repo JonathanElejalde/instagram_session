@@ -1,5 +1,4 @@
 from instagram import Instagram
-from instagram import driver
 
 import time
 import os
@@ -45,13 +44,13 @@ class User(Instagram):
         -------
         follow : boolean """
 
-        driver.get(link)
+        self.driver.get(link)
         time.sleep(2)
         follow = False
 
         # We identify the follow button and then we decide what to do
         try:
-            follow_button = driver.find_element_by_css_selector(".BY3EC")
+            follow_button = self.driver.find_element_by_css_selector(".BY3EC")
             # Check for "Seguir" or "Follow". Depends on the user language
             if follow_button.text == "Seguir" or follow_button.text == "Follow":
                 follow = True
@@ -119,5 +118,6 @@ class User(Instagram):
         query = f"INSERT INTO {table} {columns} values {values};"
         cursor.execute(query, tuple(args))
 
-# if __name__ == "__main__":
-#     pass
+
+if __name__ == "__main__":
+    pass

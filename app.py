@@ -1,10 +1,17 @@
 from user import User
 from getpass import getpass
+from selenium import webdriver
 
 import time
 import random
 import sqlite3
 import os
+
+# Initialize the driver
+driver = webdriver.Firefox(executable_path="geckodriver\\geckodriver.exe")
+
+# Wait maximum 10 seconds for the elements in the page
+driver.implicitly_wait(20)
 
 # Create database if it does not exist
 database_path = 'instagram.db'
@@ -38,7 +45,7 @@ else:
     password = getpass("Enter your password, it will be deleted after login: ")
 
 # Create an User instance ang login
-my_instagram = User(username)
+my_instagram = User(username, driver)
 # link = my_instagram.create_link(username)
 my_instagram.login(password)
 
