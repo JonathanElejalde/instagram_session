@@ -96,8 +96,10 @@ else:
     users_left = list(users_left.difference(union))
 
 # Now we iterate over every user left in the resulting set.
+
 try:
-    for i, user in enumerate(users_left):
+    for i in range(len(users_left)):
+        user = users_left.pop(0)
         link = my_instagram.create_link(user)
 
         # Check if we are already following the account
@@ -122,28 +124,24 @@ try:
 
         # Like the photos and 25% chance of comment the photo
         for photo in photos:
-            try:
-                my_instagram.like_photo(photo)
-                liked = 1
+            my_instagram.like_photo(photo)
+            liked = 1
 
-                # comment?
-                comment = random.randint(1, 4)
-                if comment == 1:
-                    my_instagram.comment(comments)
-                    seconds = random.randint(3, 10)
-                    time.sleep(seconds)
-                else:
-                    comment = 0
-
-                # Wait for like the next photo
+            # comment?
+            comment = random.randint(1, 4)
+            if comment == 1:
+                my_instagram.comment(comments)
                 seconds = random.randint(3, 10)
+                time.sleep(seconds)
+            else:
+                comment = 0
 
-                # Add to database
-                my_instagram.insert(cursor, "Photos", photo, username)
-                conn.commit()
-            except:
-                print("Could not like or comment the photo in {user}")
-                continue
+            # Wait for like the next photo
+            seconds = random.randint(3, 10)
+
+            # Add to database
+            my_instagram.insert(cursor, "Photos", photo, username)
+            conn.commit()
 
         # Add this user to the Visited table in the database
         # Before continue with other user
@@ -151,13 +149,16 @@ try:
         conn.commit()
 
 except KeyboardInterrupt:
+    my_instagram.save_users(users_left)
     print("Program interrupted...")
+
 
 except Exception as e:
     print("An special error has occurred")
     print(e)
 finally:
     # Always close the database, the driver and save the users_left
+    my_instagram.save_users(users_left)
+
     conn.close()
     my_instagram.close()
-    my_instagram.save_users(users_left[i:])

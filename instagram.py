@@ -1,4 +1,5 @@
 from selenium.webdriver.common.keys import Keys
+from selenium import webdriver
 
 import time
 import random
@@ -81,9 +82,12 @@ class Instagram:
 
         action_chain = webdriver.ActionChains(self.driver)
         while number_of_followers <= number_of_accounts:
+            print('1')
             action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
+            print('2')
             number_of_followers = len(
                 followers_list.find_elements_by_css_selector("li"))
+            print('3')
             time.sleep(2)
 
         # followers will keep the username of the accounts that we are not already following
@@ -221,9 +225,9 @@ class Instagram:
             follow_button.click()
         except Exception as e:
             print(e)
-        finally:
+        else:
             user = link.split('/')[-2]
-            print("It was not possible to follow {}".format(user))
+            print("You followed {}".format(user))
 
     def unfollow(self, link):
         """Unfollows the given user
@@ -251,7 +255,7 @@ class Instagram:
         )
         confirmation_button.click()
 
-        return print(f"You unfollowed: {username}")
+        return print(f"You unfollowed: {link.split('/')[-2]}")
 
     def comment(self, comment_list):
         """Choose a comment from a given list to comment a photo that you liked.
@@ -309,8 +313,8 @@ class Instagram:
         following_number -= 5
 
         # Identify the followers button and then click on it
-        following_button = self.driver.find_element_by_css_selector(
-            "li.Y8-fY:nth-child(3) > a:nth-child(1)"
+        following_button = self.driver.find_element_by_xpath(
+            "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a"
         )
         time.sleep(2)
         following_button.click()

@@ -5,3 +5,6 @@ instagram.db
 __pycache__
 credentials.py
 users_left.data
+.gitignore
+unfollow
+unfollow.py
