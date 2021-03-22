@@ -10,7 +10,7 @@ class User(Instagram):
         the Instagram class with all the functionality to navigate
         in Instagram like a regular user"""
 
-    users_left_path = 'users_left.data'
+    users_left_path = './users_left.data'
 
     def save_users(self, links):
         with open(self.users_left_path, 'wb') as filehandle:
@@ -32,36 +32,6 @@ class User(Instagram):
 
             return users_left
 
-    def already_follow(self, link):
-        """Checks if we can or cannot follow the account
-
-        Parameters
-        ----------
-        username : str
-            The homepage link of the account
-
-        Returns
-        -------
-        follow : boolean """
-
-        self.driver.get(link)
-        time.sleep(2)
-        follow = False
-
-        # We identify the follow button and then we decide what to do
-        try:
-            follow_button = self.driver.find_element_by_css_selector(".BY3EC")
-            # Check for "Seguir" or "Follow". Depends on the user language
-            if follow_button.text == "Seguir" or follow_button.text == "Follow":
-                follow = True
-                return follow
-            else:
-                return follow
-
-        except:
-            # If there is an error, return False to continue with another user
-            return follow
-
     def select(self, cursor, table):
         """Gets the usernames that we are already following from the
         database.
@@ -79,17 +49,21 @@ class User(Instagram):
         """
         if table == "User":
             cursor.execute(
-                f"SELECT username FROM {table} WHERE username = '{self.username}'")
-            following = cursor.fetchone()
+                f"SELECT username FROM {table}")
+            following = cursor.fetchall()
+            following = {row[0] for row in following}
+            return following
         else:
             cursor.execute(
                 f"SELECT username FROM {table} WHERE followed_by = '{self.username}'")
 
-            if cursor.fetchall() == None:
+            profiles = cursor.fetchall()
+
+            if len(profiles) < 1:
                 following = set()
                 return following
             else:
-                following = {row[0] for row in cursor.fetchall()}
+                following = {row[0] for row in profiles}
                 return following
 
     def insert(self, cursor, table, *args):
@@ -106,7 +80,7 @@ class User(Instagram):
             columns = "(username)"
             values = "(?)"
         elif table == "Following":
-            columns = "(username, follower)"
+            columns = "(username, followed_by)"
             values = "(?, ?)"
         elif table == "Visited":
             columns = "(username, photos_liked, followed_by)"
