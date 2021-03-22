@@ -9,13 +9,14 @@ class Instagram:
     instagram_link = "https://www.instagram.com/"
 
     def __init__(self, username, driver):
-        self.username = username if username.startswith(
-            '@') else '@' + username
+        self.username = username
         self.driver = driver
 
     def create_link(self, profile):
-        """It takes the profile name of an instagram account and creates a
-        link to the homepage of that profile"""
+        """
+        It takes the profile name of an instagram account and creates a
+        link to the homepage of that profile
+        """
         if "@" in profile:
             profile = profile.replace('@', '')
         link = self.instagram_link + profile + '/'
@@ -38,7 +39,8 @@ class Instagram:
         passw.send_keys(Keys.RETURN)
 
     def get_profiles(self, link, number_of_accounts, following=None):
-        """The get profiles function enters to an instagram homepage and gathers an specific number of
+        """
+        The get profiles function enters to an instagram homepage and gathers an specific number of
         usernames that are following the profile
 
         Parameters
@@ -52,7 +54,8 @@ class Instagram:
 
         Returns
         -------
-            A set with the usernames to follow """
+            A set with the usernames to follow 
+        """
 
         if following is None:
             following = set()
@@ -82,12 +85,9 @@ class Instagram:
 
         action_chain = webdriver.ActionChains(self.driver)
         while number_of_followers <= number_of_accounts:
-            print('1')
             action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
-            print('2')
             number_of_followers = len(
                 followers_list.find_elements_by_css_selector("li"))
-            print('3')
             time.sleep(2)
 
         # followers will keep the username of the accounts that we are not already following
@@ -106,7 +106,8 @@ class Instagram:
         return followers
 
     def get_photos(self, link):
-        """The get photos function returns a random amount of links with the photos
+        """
+        The get photos function returns a random amount of links with the photos
         of the profile that we are searching
 
         Parameters
@@ -116,16 +117,8 @@ class Instagram:
 
         Returns
         -------
-            List with the profile photos to like or None when the profile doesn't have photos or it is private"""
-
-        # try:
-        #     if self.driver.current_url == link:
-        #         pass
-
-        #     else:
-        #         self.driver.get(link)
-        # except:
-        #     pass
+            List with the profile photos to like or None when the profile doesn't have photos or it is private
+        """
 
         time.sleep(2)
 
@@ -180,12 +173,14 @@ class Instagram:
             return None
 
     def like_photo(self, link):
-        """Gives a like to one photo.
+        """
+        Gives a like to one photo.
 
             Parameters
             ----------
             link : str
-                The link of the photo"""
+                The link of the photo
+        """
 
         self.driver.get(link)
         time.sleep(1)
@@ -198,31 +193,25 @@ class Instagram:
             print(e)
 
     def follow(self, link):
-        """Follows the given user
+        """
+        Follows the given user
 
             Parameters
             ----------
             link : str
-                Homepage of the user """
-        # try:
-        #     if self.driver.current_url == link:
-        #         pass
-
-        #     else:
-        #         self.driver.get(link)
-        # except:
-        #     pass
-
-        time.sleep(1)
+                Homepage of the user 
+        """
+        time.sleep(2)
         # We move to the top of the page
         Keys.HOME
 
-        time.sleep(2)
+        time.sleep(3)
         try:
             follow_button = self.driver.find_element_by_xpath(
                 "/html/body/div[1]/section/main/div/header/section/div[1]/div[1]/div/div/div/span/span[1]/button")
             # follow_button = self.driver.find_elements_by_css_selector("._6VtSN")
             follow_button.click()
+            time.sleep(1)
         except Exception as e:
             print(e)
         else:
@@ -230,7 +219,8 @@ class Instagram:
             print("You followed {}".format(user))
 
     def unfollow(self, link):
-        """Unfollows the given user
+        """
+        Unfollows the given user
 
             Parameters
             ----------
@@ -239,7 +229,8 @@ class Instagram:
 
             Returns
             -------
-            A string specifying which account was unfollowed """
+            A string specifying which account was unfollowed 
+        """
 
         self.driver.get(link)
         time.sleep(2)
@@ -258,12 +249,14 @@ class Instagram:
         return print(f"You unfollowed: {link.split('/')[-2]}")
 
     def comment(self, comment_list):
-        """Choose a comment from a given list to comment a photo that you liked.
+        """
+        Choose a comment from a given list to comment a photo that you liked.
 
         Parameters
         ----------
         comment_list : list
-            List with the possible comments """
+            List with the possible comments 
+        """
 
         try:
             enter_key = u'\ue007'
@@ -289,7 +282,8 @@ class Instagram:
             print("The comments are disabled")
 
     def who_i_follow(self, link):
-        """Gets the accounts that the username is following
+        """
+        Gets the accounts that the username is following
 
         Parameters
         ----------
@@ -298,7 +292,8 @@ class Instagram:
 
         Returns
         -------
-            A list with the account links that the user is following """
+            A list with the account links that the user is following 
+        """
 
         self.driver.get(link)
 
@@ -306,8 +301,9 @@ class Instagram:
         following_number = self.driver.find_element_by_xpath(
             "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a/span"
         ).text
-        if '.' in following_number:
+        if (',' in following_number) or ('.' in following_number):
             following_number = following_number.replace('.', '')
+            following_number = following_number.replace(',', '')
         following_number = int(following_number)
         # We reduce the number because it never gets all the accounts
         following_number -= 5
@@ -346,6 +342,38 @@ class Instagram:
                 break
 
         return following
+
+    def already_follow(self, link):
+        """
+        Checks if we can or cannot follow the account
+
+        Parameters
+        ----------
+        username : str
+            The homepage link of the account
+
+        Returns
+        -------
+        follow : boolean 
+        """
+
+        self.driver.get(link)
+        time.sleep(2)
+        follow = False
+
+        # We identify the follow button and then we decide what to do
+        try:
+            follow_button = self.driver.find_element_by_css_selector(".BY3EC")
+            # Check for "Seguir" or "Follow". Depends on the user language
+            if follow_button.text == "Seguir" or follow_button.text == "Follow":
+                follow = True
+                return follow
+            else:
+                return follow
+
+        except:
+            # If there is an error, return False to continue with another user
+            return follow
 
     def close(self):
         """close the driver connection"""
