@@ -8,19 +8,19 @@ import sqlite3
 import os
 
 # Initialize the driver
-driver = webdriver.Firefox(executable_path="geckodriver\\geckodriver.exe")
+driver = webdriver.Firefox(executable_path="geckodriver/geckodriver")
 
 # Wait maximum 10 seconds for the elements in the page
 driver.implicitly_wait(20)
 
 # Create database if it does not exist
-database_path = 'instagram.db'
+database_path = './instagram.db'
 if not os.path.exists(database_path):
     print("Creating database ...")
-    os.system('database.py')
+    os.system('python3 database.py')
 
 
-conn = sqlite3.connect('instagram.db')
+conn = sqlite3.connect(database_path)
 cursor = conn.cursor()
 
 # Comment's list
@@ -36,13 +36,8 @@ comments = [
 
 # Login the account
 # Alternative login with credentials file
-if os.path.exists('credentials.py'):
-    import credentials
-    username = credentials.username
-    password = credentials.password
-else:
-    username = input("Enter your username: ")
-    password = getpass("Enter your password, it will be deleted after login: ")
+username = input("Enter your username: ")
+password = getpass("Enter your password, it will be deleted after login: ")
 
 # Create an User instance ang login
 my_instagram = User(username, driver)
@@ -56,10 +51,17 @@ time.sleep(5)
 del password
 
 # Add username to the database if it is not already there
-if my_instagram.select(cursor, "User") == None:
+if username in my_instagram.select(cursor, "User"):
     print("User already in the database")
 else:
     my_instagram.insert(cursor, "User", username)
+    # Populate the database with the profiles
+    # that the account already follows
+    link = my_instagram.create_link(username)
+    following = my_instagram.who_i_follow(link)
+    for profile in following:
+        profile = profile.split('/')[-2]
+        my_instagram.insert(cursor, 'Following', profile, username)
     conn.commit()
 
 # Get users left, it could be empty
@@ -94,6 +96,8 @@ else:
 
     # The users left will be the difference between the two sets
     users_left = list(users_left.difference(union))
+
+    print(f'{len(users_left)} to check')
 
 # Now we iterate over every user left in the resulting set.
 
@@ -158,7 +162,8 @@ except Exception as e:
     print(e)
 finally:
     # Always close the database, the driver and save the users_left
+    print(len(users_left))
     my_instagram.save_users(users_left)
-
+    conn.commit()
     conn.close()
     my_instagram.close()
