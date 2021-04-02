@@ -3,23 +3,33 @@ from selenium import webdriver
 
 import time
 import random
+import instaloader
 
 
 class Instagram:
     instagram_link = "https://www.instagram.com/"
 
-    def __init__(self, username, driver):
+    def __init__(self, username, password, driver):
         self.username = username
         self.driver = driver
+        self.password = password
 
-    def create_link(self, profile):
+        # Login to instaloader
+        self.L = instaloader.Instaloader()
+        self.L.login(self.username, self.password)
+
+        # delete password
+        del password
+        del self.password
+
+    def create_link(self, username):
         """
-        It takes the profile name of an instagram account and creates a
-        link to the homepage of that profile
+        It takes the username of an instagram account and creates a
+        link to the homepage of that username
         """
-        if "@" in profile:
-            profile = profile.replace('@', '')
-        link = self.instagram_link + profile + '/'
+        if "@" in username:
+            username = username.replace('@', '')
+        link = self.instagram_link + username + '/'
 
         return link
 
@@ -38,77 +48,58 @@ class Instagram:
         passw.send_keys(password)
         passw.send_keys(Keys.RETURN)
 
-    def get_profiles(self, link, number_of_accounts, following=None):
+    def get_followers(self, username, number_of_accounts=None):
         """
-        The get profiles function enters to an instagram homepage and gathers an specific number of
-        usernames that are following the profile
+        Gets all the accounts that are following `username` and
+        returns the `number_of_accounts` specified
 
         Parameters
         ----------
-        link : str
-            Link of the homepage that we want to visit
+        username : str
         number_of_accounts : int
-            Amount of followers to get
-        following : set
-            Set with the usernames that our account is currently following
+            Amount of followers to return. If None, 
+            it returns all
 
         Returns
         -------
             A set with the usernames to follow 
         """
+        # Get profile metadata of the user
+        self.metadata = instaloader.Profile.from_username(self.L.context, username)
 
-        if following is None:
-            following = set()
+        # get accounts
+        accounts = set()
+        for i, users in enumerate(self.metadata.get_followers()):
+            accounts.add(users.username)
+            if number_of_accounts == None:
+                continue
+            else:
+                if i == number_of_accounts:
+                    break
 
-        assert type(number_of_accounts) == int, "It is not a number"
+        return accounts
 
-        if number_of_accounts > 2000:
-            number_of_accounts = 2000
-            print("The program can collect just 2000 usernames")
+    def get_followees(self, username):
+        """
+        Gets the accounts that the username is following
 
-        self.driver.get(link)
+        Returns
+        -------
+            A set with the usernames that the user is following 
+        """
+        # Get profile metadata of the user
+        self.metadata = instaloader.Profile.from_username(self.L.context, username)
 
-        # Identify the followers button
-        followers_button = self.driver.find_element_by_css_selector("ul li a")
-        time.sleep(2)
-        followers_button.click()
-        time.sleep(3)
+        # get accounts
+        accounts = set()
+        for users in self.metadata.get_followees():
+            accounts.add(users.username)
 
-        # Look at the list, it just show the firts 12 so we store that number into number_of_followers
-        followers_list = self.driver.find_element_by_css_selector(
-            "div[role='dialog'] ul")
-        number_of_followers = len(
-            followers_list.find_elements_by_css_selector("li"))
-        followers_list.click()
-
-        # number_of_accounts is the amount of followers that we want to capture, so we scroll down the list of followers until number_of_followers matches that number
-
-        action_chain = webdriver.ActionChains(self.driver)
-        while number_of_followers <= number_of_accounts:
-            action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
-            number_of_followers = len(
-                followers_list.find_elements_by_css_selector("li"))
-            time.sleep(2)
-
-        # followers will keep the username of the accounts that we are not already following
-        followers = set()
-        for user in followers_list.find_elements_by_css_selector("li"):
-            user_link = user.find_element_by_css_selector(
-                "a").get_attribute("href")
-
-            # Separate the username from the link
-            name = user_link.split('/')[-2]
-            print(name)
-
-            if user_link not in following:
-                followers.add(name)
-
-        return followers
+        return accounts
 
     def get_photos(self, link):
         """
-        The get photos function returns a random amount of links with the photos
-        of the profile that we are searching
+        Returns a random amount of links with the photos of the `link` that we are searching
 
         Parameters
         ----------
@@ -119,6 +110,7 @@ class Instagram:
         -------
             List with the profile photos to like or None when the profile doesn't have photos or it is private
         """
+        # self.driver.get(link)
 
         time.sleep(2)
 
@@ -201,12 +193,14 @@ class Instagram:
             link : str
                 Homepage of the user 
         """
-        time.sleep(2)
+
+        time.sleep(1)
+        #self.driver.get(link)
         # We move to the top of the page
         Keys.HOME
-
-        time.sleep(3)
         try:
+            Keys.HOME
+            time.sleep(2)
             follow_button = self.driver.find_element_by_xpath(
                 "/html/body/div[1]/section/main/div/header/section/div[1]/div[1]/div/div/div/span/span[1]/button")
             # follow_button = self.driver.find_elements_by_css_selector("._6VtSN")
@@ -235,14 +229,13 @@ class Instagram:
         self.driver.get(link)
         time.sleep(2)
 
-        # follow_button = self.driver.find_element_by_css_selector(".BY3EC")
-        follow_button = self.driver.find_element_by_xpath(
-            "/html/body/div[1]/section/main/div/header/section/div[1]/div[1]/div/div[2]/div/span/span[1]/button"
-        )
+        follow_button = self.driver.find_element_by_css_selector(".glyphsSpriteFriend_Follow")
+        #follow_button = self.driver.find_element_by_class_name('_5f5mN    -fzfL     _6VtSN     yZn4P   ')
+        #follow_button = self.driver.find_element_by_xpath("/html/body/div[1]/section/main/div/header/section/div[1]/div[1]/div/div[2]/div/span/span[1]/button")
         follow_button.click()
         time.sleep(1)
         confirmation_button = self.driver.find_element_by_xpath(
-            '/html/body/div[4]/div/div/div/div[3]/button[1]'
+            '/html/body/div[5]/div/div/div/div[3]/button[1]'
         )
         confirmation_button.click()
 
@@ -257,91 +250,37 @@ class Instagram:
         comment_list : list
             List with the possible comments 
         """
-
+        comment = True
         try:
             enter_key = u'\ue007'
             # get the comment field and click
             comment_field = self.driver.find_element_by_class_name(
                 "Ypffh").click()
-            self.driver.execute_script(
-                'window.scrollTo(0, document.body.scrollHeight)')
-
-            # Wait # seconds after like a photo
-            seconds = random.randint(1, 3)
-            time.sleep(seconds)
-
-            # From the list of comments get one
-            comment_text = random.choice(comment_list)
-
-            # We have to search for the field again to add the comment, then enter
-            comment_field = self.driver.find_element_by_css_selector(".Ypffh")
-            comment_field.send_keys(comment_text + enter_key)
-
-            time.sleep(random.randint(1, 3))
+            # self.driver.execute_script(
+            #    'window.scrollTo(0, document.body.scrollHeight)')
         except:
             print("The comments are disabled")
+            comment = False
+        
+        if comment:
+            # If we can click on the text box, check if we can add the comment
+            try:
+                seconds = random.randint(1, 3)
+                time.sleep(seconds)
 
-    def who_i_follow(self, link):
-        """
-        Gets the accounts that the username is following
+                # From the list of comments get one
+                comment_text = random.choice(comment_list)
 
-        Parameters
-        ----------
-        link : str
-            The homepage of the account
+                # We have to search for the field again to add the comment, then enter
+                comment_field = self.driver.find_element_by_css_selector(".Ypffh")
+                comment_field.send_keys(comment_text + enter_key)
 
-        Returns
-        -------
-            A list with the account links that the user is following 
-        """
+                time.sleep(random.randint(1, 3))
+            except Exception as e:
+                print('Error adding the comment')
+                print(e)
 
-        self.driver.get(link)
-
-        # Now we catch the amount of people that we are following to have a limit
-        following_number = self.driver.find_element_by_xpath(
-            "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a/span"
-        ).text
-        if (',' in following_number) or ('.' in following_number):
-            following_number = following_number.replace('.', '')
-            following_number = following_number.replace(',', '')
-        following_number = int(following_number)
-        # We reduce the number because it never gets all the accounts
-        following_number -= 5
-
-        # Identify the followers button and then click on it
-        following_button = self.driver.find_element_by_xpath(
-            "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a"
-        )
-        time.sleep(2)
-        following_button.click()
-        time.sleep(2)
-
-        # Look at the list, it just show the firts 12 so we store that number into number_of_followers
-        followers_list = self.driver.find_element_by_css_selector(
-            "div[role='dialog'] ul")
-        number_of_followers = len(
-            followers_list.find_elements_by_css_selector("li"))
-        # print(number_of_followers)
-        followers_list.click()
-
-        action_chain = webdriver.ActionChains(self.driver)
-        while number_of_followers < following_number:
-            action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
-            number_of_followers = len(
-                followers_list.find_elements_by_css_selector("li"))
-            time.sleep(2)
-            print(number_of_followers)
-
-        following = []
-        for user in followers_list.find_elements_by_css_selector("li"):
-            user_link = user.find_element_by_css_selector(
-                "a").get_attribute("href")
-            # print(user_link)
-            following.append(user_link)
-            if len(following) >= following_number:
-                break
-
-        return following
+                
 
     def already_follow(self, link):
         """
