@@ -10,27 +10,26 @@ class User(Instagram):
         the Instagram class with all the functionality to navigate
         in Instagram like a regular user"""
 
-    users_left_path = './users_left.data'
-
-    def save_users(self, links):
-        with open(self.users_left_path, 'wb') as filehandle:
+    def save_users(self, links, filename):
+        with open(filename, 'wb') as filehandle:
 
             # Store the data as a binary data stream
             pickle.dump(links, filehandle)
 
-    def load_users(self):
-        # If there is not file, create it with an empty list
-        if not os.path.exists(self.users_left_path):
-            with open(self.users_left_path, 'wb') as filehandle:
-                empty_list = []
-                pickle.dump(empty_list, filehandle)
+    def load_users(self, filename):
+        # If there is not file, create it with an empty dict
+        if not os.path.exists(filename):
+            with open(filename, 'wb') as filehandle:
+                pending_tasks = dict()
+                pending_tasks[self.username] = set()
+                pickle.dump(pending_tasks, filehandle)
 
-        with open(self.users_left_path, 'rb') as filehandle:
+        with open(filename, 'rb') as filehandle:
 
             # Read the data as binary data stream
-            users_left = pickle.load(filehandle)
+            pending_tasks = pickle.load(filehandle)
 
-            return users_left
+            return pending_tasks
 
     def select(self, cursor, table):
         """Gets the usernames that we are already following from the
