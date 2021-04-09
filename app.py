@@ -50,10 +50,10 @@ def unfollow(my_instagram, users):
             seconds = random.randint(15, 30)
             time.sleep(seconds)
     except KeyboardInterrupt:
-        keyboardinterrupt(my_instagram, users, UNFOLLOW_LEFT_PATH)
+        keyboardinterrupt(my_instagram, users, config.UNFOLLOW_LEFT_PATH)
         
     except Exception as e:
-        other_exception(e, my_instagram, users, UNFOLLOW_LEFT_PATH)
+        other_exception(e, my_instagram, users, config.UNFOLLOW_LEFT_PATH)
 
 def get_users_left(my_instagram, filename):
     users_left = my_instagram.load_users(filename)
