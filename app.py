@@ -1,7 +1,7 @@
-from user import User
 from getpass import getpass
 from selenium import webdriver
 from utils import Utils
+from instagram import Instagram
 
 import config
 import time
@@ -22,18 +22,6 @@ def keyboardinterrupt(
     sys.exit()
 
 
-def other_exception(
-    error: Exception, instagram: Instagram, utils: Utils, users: set, filename: str
-) -> None:
-    print("An special error has occurred")
-    print(error)
-    print(f"\n{len(users)} Users pending for next session")
-    pending = dict()
-    pending[instagram.username] = users
-    utils.save_file(pending, filename)
-    sys.exit()
-
-
 def close(instagram):
     conn.commit()
     conn.close()
@@ -45,19 +33,12 @@ def close(instagram):
 def unfollow(instagram: Instagram, utils: Utils, users: set) -> None:
     for i in range(len(users)):
         user = users.pop()
-        link = my_instagram.create_link(user)
-        try:
-            my_instagram.unfollow(link)
-            seconds = random.randint(15, 30)
-            time.sleep(seconds)
-        except KeyboardInterrupt:
-            keyboardinterrupt(instagram, utils, users, config.UNFOLLOW_LEFT_PATH)
-
-        except Exception as e:
-            other_exception(e, instagram, utils, users, config.UNFOLLOW_LEFT_PATH)
-
+        link = instagram.create_link(user)
+        instagram.unfollow(link)
+        seconds = random.randint(15, 30)
+        time.sleep(seconds)
         if (i + 1) % 10 == 0:
-            print(f"{i + 1} users of {total} unfollowed")
+            print(f"You have unfollowed {i+1} accounts")
 
 
 def get_users_left(instagram: Instagram, utils: Utils, filename: str) -> dict:
@@ -75,8 +56,8 @@ def new_session(instagram: Instagram, utils: Utils) -> set:
     amount = input("Write the amount of followers to get: ")
     amount = int(amount)
 
-    following = instagram.select_followees("Following", instagram.username)
-    visited = my_instagram.select("Visited", instagram.username)
+    following = utils.select_followees("Following", instagram.username)
+    visited = utils.select_followees("Visited", instagram.username)
 
     union = following.union(visited)
 
@@ -112,12 +93,14 @@ def save_true_followers(
     conn.commit()
 
 
-def check_pending_tasks(unfollow_left: set, users_left: set) -> set:
+def check_pending_tasks(
+    instagram: Instagram, utils: Utils, unfollow_left: set, users_left: set
+) -> set:
 
     # 1. unfollow
     if len(unfollow_left) > 1:
         print(f"There are {len(unfollow_left)} users to unfollow")
-        unfollow(my_instagram, unfollow_left)
+        unfollow(instagram, utils, unfollow_left)
 
     # 2. continue with the users or start a new session
     if len(users_left) > 1:
@@ -142,7 +125,7 @@ def like_comment_photos(
             comment_true = random.randint(1, 4)
 
             if comment and (comment_true == 1):
-                my_instagram.comment(config.COMMENTS)
+                instagram.comment(config.COMMENTS)
                 seconds = random.randint(3, 10)
                 time.sleep(seconds)
 
@@ -170,7 +153,7 @@ if __name__ == "__main__":
 
     # Login
     utils = Utils(cursor)
-    instagram = instagram(username, password, driver)
+    instagram = Instagram(username, password, driver)
 
     # Wait for login
     time.sleep(3)
@@ -190,7 +173,7 @@ if __name__ == "__main__":
         # Unfollow accounts that don't follow back
         unfollow_left = followees.difference(followers)
         print(f"{len(unfollow_left)} accounts of {len(followees)} to unfollow")
-        unfollow(instagram, unfollow_left)
+        unfollow(instagram, utils, unfollow_left)
 
         # Needed for next step
         users_left = set()
@@ -199,10 +182,10 @@ if __name__ == "__main__":
         print("User already in the database")
         print("Looking if there are tasks pending...")
 
-        users_left = get_users_left(instagram, config.USERS_LEFT_PATH)
-        unfollow_left = get_users_left(instagram, config.UNFOLLOW_LEFT_PATH)
+        users_left = get_users_left(instagram, utils, config.USERS_LEFT_PATH)
+        unfollow_left = get_users_left(instagram, utils, config.UNFOLLOW_LEFT_PATH)
 
-    users_left = check_pending_tasks(unfollow_left, users_left)
+    users_left = check_pending_tasks(instagram, utils, unfollow_left, users_left)
 
     if not users_left:
         users_left = new_session(instagram, utils)
@@ -232,9 +215,9 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         keyboardinterrupt(instagram, utils, users_left, config.USERS_LEFT_PATH)
 
-    except Exception as e:
-        other_exception(e, instagram, users, users_left, config.USERS_LEFT_PATH)
+    except:
+        keyboardinterrupt(instagram, utils, users_left, config.USERS_LEFT_PATH)
 
     finally:
-        # Always close the database, the driver and save the users_left
-        close(my_instagram)
+        # Always close the database
+        close(instagram)
