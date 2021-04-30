@@ -82,11 +82,8 @@ class Instagram:
         accounts = set()
         for i, users in enumerate(metadata.get_followers()):
             accounts.add(users.username)
-            if number_of_accounts == None:
-                continue
-            else:
-                if i == number_of_accounts:
-                    break
+            if i == number_of_accounts:
+                break
 
         return accounts
 
