@@ -72,6 +72,8 @@ class Instagram:
         passw.send_keys(self.password)
         passw.send_keys(Keys.RETURN)
 
+        time.sleep(5)
+
     def get_followers(self, username: str, number_of_accounts: int = None) -> set:
         """
         Gets all the accounts that are following `username` and
@@ -208,17 +210,20 @@ class Instagram:
             time.sleep(2)
 
         element = ".glyphsSpriteFriend_Follow"
-        follow_button = self.driver.find_element_by_css_selector(element)
-        follow_button.click()
+        try:
+            follow_button = self.driver.find_element_by_css_selector(element)
+            follow_button.click()
 
-        time.sleep(1)
+            time.sleep(1)
 
-        confirmation_button = self.driver.find_element_by_xpath(
-            "/html/body/div[5]/div/div/div/div[3]/button[1]"
-        )
-        confirmation_button.click()
+            confirmation_button = self.driver.find_element_by_xpath(
+                "/html/body/div[5]/div/div/div/div[3]/button[1]"
+            )
+            confirmation_button.click()
+            print(f"You unfollowed: {self._get_username(link)}")
+        except:
 
-        print(f"You unfollowed: {link.split('/')[-2]}")
+            print(f"Error unfollowing {self._get_username(link)}")
 
     def comment(self, comment_list: list, link: str) -> None:
         """
