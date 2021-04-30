@@ -1,7 +1,7 @@
 # Variables
-USERS_LEFT_PATH = 'users_left.data'
-UNFOLLOW_LEFT_PATH = 'unfollow_left.data'
-DATABASE_PATH = './instagram.db'
+USERS_LEFT_PATH = "users_left.data"
+UNFOLLOW_LEFT_PATH = "unfollow_left.data"
+DATABASE_PATH = "./instagram.db"
 
 # Comment's list
 COMMENTS = [
@@ -16,3 +16,5 @@ COMMENTS = [
 
 # Settings
 FOLLOW = True
+LIKE_PHOTOS = True
+COMMENT_PHOTOS = True
