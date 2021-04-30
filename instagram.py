@@ -72,7 +72,7 @@ class Instagram:
         passw.send_keys(self.password)
         passw.send_keys(Keys.RETURN)
 
-    def get_followers(self, username: str, number_of_accounts: set = None) -> set:
+    def get_followers(self, username: str, number_of_accounts: int = None) -> set:
         """
         Gets all the accounts that are following `username` and
         returns the specified `number_of_accounts`
