@@ -43,7 +43,7 @@ class Utils:
 
         return following
 
-    def select_followers(self, table: str, username: str) -> set:
+    def select_followees(self, table: str, username: str) -> set:
         """
         Returns the accounts that `username` is already following
         or have previously visited. Else return an empty set.
