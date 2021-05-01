@@ -20,14 +20,14 @@ class Utils:
 
             pickle.dump(links, filehandler)
 
-    def load_file(self, filename: str) -> Any:
+    def load_file(self, filename: str, username: str) -> dict:
         """Loads a python object stored in `filename`"""
 
         # If there is not file, create it with an empty dict
         if not os.path.exists(filename):
             with open(filename, "wb") as filehandle:
                 pending_tasks = dict()
-                pending_tasks[self.username] = set()
+                pending_tasks[username] = set()
                 pickle.dump(pending_tasks, filehandle)
 
         with open(filename, "rb") as filehandle:
