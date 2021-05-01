@@ -51,7 +51,9 @@ def unfollow(instagram: Instagram, utils: Utils, pending_unfollows: set) -> None
             time.sleep(seconds)
         except KeyboardInterrupt:
             pending_unfollows[instagram.username] = unfollow_left
-            save_users_left(instagram, utils, pending_unfollows, config.USERS_LEFT_PATH)
+            save_users_left(
+                instagram, utils, pending_unfollows, config.UNFOLLOW_LEFT_PATH
+            )
             close(instagram)
 
         except Exception as e:
@@ -92,6 +94,7 @@ def new_session(instagram: Instagram, utils: Utils) -> set:
 
     print(f"{len(users_left)} to check")
 
+    pending_users_left = dict()
     pending_users_left[instagram.username] = users_left
 
     return pending_users_left
@@ -217,6 +220,7 @@ if __name__ == "__main__":
 
         # Needed for next step
         pending_unfollows[instagram.username] = set()
+        pending_users_left = dict()
         pending_users_left[instagram.username] = set()
 
     else:
