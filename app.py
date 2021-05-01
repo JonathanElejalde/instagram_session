@@ -216,6 +216,7 @@ if __name__ == "__main__":
         unfollow(instagram, utils, pending_unfollows)
 
         # Needed for next step
+        pending_unfollows[instagram.username] = set()
         pending_users_left[instagram.username] = set()
 
     else:
