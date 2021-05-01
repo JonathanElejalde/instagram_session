@@ -58,6 +58,8 @@ def unfollow(instagram: Instagram, utils: Utils, pending_unfollows: set) -> None
 
         except Exception as e:
             print(f"Following error appear when visiting {user}:\n{e}")
+            seconds = random.randint(5, 10)
+            time.sleep(seconds)
             continue
 
         if (i + 1) % 10 == 0:
@@ -260,6 +262,8 @@ if __name__ == "__main__":
 
             else:
                 print(f"You already follow {user}")
+                seconds = random.randint(5, 15)
+                time.sleep(seconds)
                 continue
 
         except KeyboardInterrupt:
@@ -271,6 +275,8 @@ if __name__ == "__main__":
 
         except Exception as e:
             print(f"Following error appear when visiting {user}:\n{e}")
+            seconds = random.randint(5, 15)
+            time.sleep(seconds)
             continue
 
     # If not users left, save empty set and close
