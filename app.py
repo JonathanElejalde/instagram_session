@@ -12,7 +12,7 @@ import sys
 
 
 def save_users_left(
-    instagram: Instagram, utils: Utils, users: set, filename: str
+    instagram: Instagram, utils: Utils, users: dict, filename: str
 ) -> None:
     """
     Saves the users that the current session did not visite.
@@ -38,10 +38,10 @@ def close(instagram):
     sys.exit()
 
 
-def unfollow(instagram: Instagram, utils: Utils, users: set) -> None:
+def unfollow(instagram: Instagram, utils: Utils, pending_unfollows: set) -> None:
     """Takes a dict of users and gets the accounts to unfollow using selenium webdriver"""
 
-    unfollow_left = users[instagram.username]
+    unfollow_left = pending_unfollows[instagram.username]
     for i in range(len(unfollow_left)):
         user = unfollow_left.pop()
         try:
@@ -50,8 +50,8 @@ def unfollow(instagram: Instagram, utils: Utils, users: set) -> None:
             seconds = random.randint(15, 30)
             time.sleep(seconds)
         except KeyboardInterrupt:
-            users[instagram.username] = unfollow_left
-            save_users_left(instagram, utils, users, config.USERS_LEFT_PATH)
+            pending_unfollows[instagram.username] = unfollow_left
+            save_users_left(instagram, utils, pending_unfollows, config.USERS_LEFT_PATH)
             close(instagram)
 
         except Exception as e:
@@ -269,5 +269,6 @@ if __name__ == "__main__":
             continue
 
     # If not users left, save empty set and close
-    save_users_left(instagram, utils, users_left, config.USERS_LEFT_PATH)
+    pending_users_left[instagram.username] = users_left
+    save_users_left(instagram, utils, pending_users_left, config.USERS_LEFT_PATH)
     close(instagram)
