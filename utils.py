@@ -1,5 +1,7 @@
 from instagram import Instagram
 from typing import Any
+from typing import Dict
+from typing import Set
 
 import time
 import os
@@ -20,15 +22,15 @@ class Utils:
 
             pickle.dump(links, filehandler)
 
-    def load_file(self, filename: str, username: str) -> dict:
+    def load_file(self, filename: str, username: str) -> Dict[str, set]:
         """Loads a python object stored in `filename`"""
 
         # If there is not file, create it with an empty dict
         if not os.path.exists(filename):
             with open(filename, "wb") as filehandle:
-                pending_tasks = dict()
-                pending_tasks[username] = set()
-                pickle.dump(pending_tasks, filehandle)
+                new_tasks = dict()
+                new_tasks[username] = set()
+                pickle.dump(new_tasks, filehandle)
 
         with open(filename, "rb") as filehandle:
 
@@ -36,14 +38,14 @@ class Utils:
 
             return pending_tasks
 
-    def select_users(self, table: str = "User") -> set:
+    def select_users(self, table: str = "User") -> Set[str]:
         self.cursor.execute(f"SELECT username FROM {table};")
         following = self.cursor.fetchall()
         following = {row[0] for row in following}
 
         return following
 
-    def select_followees(self, table: str, username: str) -> set:
+    def select_followees(self, table: str, username: str) -> Set[str]:
         """
         Returns the accounts that `username` is already following
         or have previously visited. Else return an empty set.
@@ -56,8 +58,8 @@ class Utils:
         accounts = self.cursor.fetchall()
 
         if len(accounts) < 1:
-            following = set()
-            return following
+            empty_following = set()
+            return empty_following
         else:
             following = {row[0] for row in accounts}
             return following
@@ -76,7 +78,7 @@ class Utils:
             query = f"INSERT INTO Visited (username, photos_liked, followed_by) values (?, ?, ?);"
             self.cursor.execute(query, (username, photos_liked, followed_by))
 
-    def insert_photos(self, link, liked_by):
+    def insert_photos(self, link: str, liked_by: str) -> None:
         query = f"INSERT INTO Photos (link, liked_by) values (?, ?);"
         self.cursor.execute(query, (link, liked_by))
 
