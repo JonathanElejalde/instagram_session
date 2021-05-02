@@ -2,6 +2,8 @@ from getpass import getpass
 from selenium import webdriver
 from utils import Utils
 from instagram import Instagram
+from typing import Dict
+from typing import Union
 
 import config
 import time
@@ -38,7 +40,7 @@ def close(instagram):
     sys.exit()
 
 
-def unfollow(instagram: Instagram, utils: Utils, pending_unfollows: set) -> None:
+def unfollow(instagram: Instagram, utils: Utils, pending_unfollows: dict) -> None:
     """Takes a dict of users and gets the accounts to unfollow using selenium webdriver"""
 
     unfollow_left = pending_unfollows[instagram.username]
@@ -66,7 +68,7 @@ def unfollow(instagram: Instagram, utils: Utils, pending_unfollows: set) -> None
             print(f"You have unfollowed {i+1} accounts")
 
 
-def get_users_left(instagram: Instagram, utils: Utils, filename: str) -> dict:
+def get_users_left(instagram: Instagram, utils: Utils, filename: str) -> Dict[str, set]:
     """Loads a dict and returns the accounts left"""
     pending_tasks = utils.load_file(filename, instagram.username)
     if instagram.username not in pending_tasks.keys():
@@ -75,7 +77,7 @@ def get_users_left(instagram: Instagram, utils: Utils, filename: str) -> dict:
     return pending_tasks
 
 
-def new_session(instagram: Instagram, utils: Utils) -> set:
+def new_session(instagram: Instagram, utils: Utils) -> Dict[str, set]:
     """Asks for an instagram account and number of followers. Then, visits
     the account and return the amount of followers in a set.
 
@@ -130,8 +132,11 @@ def save_true_followers(
 
 
 def check_pending_tasks(
-    instagram: Instagram, utils: Utils, pending_unfollows: dict, pending_users_left: set
-) -> set:
+    instagram: Instagram,
+    utils: Utils,
+    pending_unfollows: dict,
+    pending_users_left: dict,
+) -> Union[Dict[str, set], None]:
 
     # Get pending tasks for this current user
     unfollow_left = pending_unfollows[instagram.username]
