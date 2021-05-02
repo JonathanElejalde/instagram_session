@@ -28,7 +28,7 @@ class Utils:
         # If there is not file, create it with an empty dict
         if not os.path.exists(filename):
             with open(filename, "wb") as filehandle:
-                new_tasks = dict()
+                new_tasks: Dict[str, set] = dict()
                 new_tasks[username] = set()
                 pickle.dump(new_tasks, filehandle)
 
@@ -58,7 +58,7 @@ class Utils:
         accounts = self.cursor.fetchall()
 
         if len(accounts) < 1:
-            empty_following = set()
+            empty_following: Set[str] = set()
             return empty_following
         else:
             following = {row[0] for row in accounts}

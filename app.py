@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
         # Unfollow accounts that don't follow back
         unfollow_left = followees.difference(followers)
-        pending_unfollows = dict()
+        pending_unfollows: Dict[str, set] = dict()
         pending_unfollows[instagram.username] = unfollow_left
 
         print(f"{len(unfollow_left)} accounts of {len(followees)} to unfollow")
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 
         # Needed for next step
         pending_unfollows[instagram.username] = set()
-        pending_users_left = dict()
+        pending_users_left: Dict[str, set] = dict()
         pending_users_left[instagram.username] = set()
 
     else:
