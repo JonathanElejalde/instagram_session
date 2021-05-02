@@ -8,3 +8,4 @@ users_left.data
 .gitignore
 unfollow
 unfollow.py
+unfollow_left.data
