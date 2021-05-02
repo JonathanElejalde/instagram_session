@@ -1,5 +1,6 @@
 from selenium.webdriver.common.keys import Keys
 from selenium import webdriver
+from typing import Union
 
 import time
 import random
@@ -102,7 +103,7 @@ class Instagram:
 
         return accounts
 
-    def get_photos(self, link: str) -> list:
+    def get_photos(self, link: str) -> Union[list, None]:
         """
         Returns a random amount of instagram photo from the current link or None
         if there are not photos or the account is private
@@ -159,7 +160,7 @@ class Instagram:
             print(f"The account {username} is private, empty or does not exist")
             return None
 
-    def like_photo(self, link: str) -> str:
+    def like_photo(self, link: str) -> None:
         """
         Likes an instagram photo
         """
