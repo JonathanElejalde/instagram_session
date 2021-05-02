@@ -16,7 +16,7 @@ class Utils:
     def __init__(self, cursor):
         self.cursor = cursor
 
-    def save_file(self, links: list, filename: str) -> None:
+    def save_file(self, links: dict, filename: str) -> None:
         """Saves a python object with passed `filename`"""
         with open(filename, "wb") as filehandler:
 
